@@ -1,0 +1,21 @@
+{% extends "Jenkins.html" %}
+{% block content %}
+<div id="page-body" class="clear" xmlns="http://www.w3.org/1999/html">
+        <div id="side-panel"></div>
+        <div id="main-panel">
+            <a name="skip2content"></a>
+            <div style="margin: 2em;">
+                <form method="post" name="login" action="/index/" style="text-size:smaller">{% csrf_token %}
+                    {{ form.as_p }}
+                    <input name="from" type="hidden" value="login">
+                        <span class="yui-button yui-submit-button submit-button primary" id="yui-gen1" name="Submit">
+                            <span class="first-child">
+                                <button type="submit" tabindex="0" id="yui-gen1-button">登录</button>
+                            </span>
+                        </span>
+                    </input>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

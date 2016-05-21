@@ -1,0 +1,16 @@
+{% extends "Jenkins.html" %}
+{% block content %}
+<div id="page-body" class="clear">
+    <div id="side-panel" style="background-color:white">
+{#    {{ jobs }}#}
+        {% for job in jobs %}
+            <div class="task">
+                <a href="http://localhost:8080/view/All/newJob" class="task-link"><h1>{{ job.name }}</h1></a>
+            </div>
+        {% endfor %}
+    </div>
+    <div id="main-panel" style="background-color:yellow">
+
+    </div>
+</div>
+{% endblock %}
