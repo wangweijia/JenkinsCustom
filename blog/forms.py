@@ -9,3 +9,7 @@ class LoginForm(forms.Form):
 
 class ProjectConfig(forms.Form):
     queue = forms.ModelChoiceField(label="新打包环境:", queryset=Config.objects.all(), to_field_name='configName')
+
+
+# class Commit(forms.Form):
+#     content = forms.ModelChoiceField()

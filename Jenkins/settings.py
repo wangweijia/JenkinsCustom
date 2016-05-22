@@ -25,6 +25,9 @@ SECRET_KEY = '&wqkv#5_8!59+^j^%sxh@h#q9n2rb7z%=a7v9760mh$-qd1u_x'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# session 保存时间 5 分钟
+SESSION_COOKIE_AGE = 60 * 5
+
 ALLOWED_HOSTS = []
 
 

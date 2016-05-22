@@ -25,4 +25,6 @@ urlpatterns = [
     url(r'^config', blog_views.config),
     url(r'^build', blog_views.build),
     url(r'^job', blog_views.job),
+    url(r'^commit', blog_views.commit),
+
 ]

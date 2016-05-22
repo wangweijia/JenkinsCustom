@@ -1,7 +1,9 @@
 from django.shortcuts import render_to_response, render
 from django.http import HttpResponse
 from .forms import *
+from .models import *
 from archiveSetting.archive2 import JenkinsCustomServer
+from archiveSetting.commit import MyCommit
 
 
 def login(req):
@@ -11,18 +13,19 @@ def login(req):
             user = req.POST.get('userName')
             pwd = req.POST.get('passWord')
 
-            jenkins = JenkinsCustomServer(url='http://localhost:8080/', userName=user, password=pwd)
-
-            if jenkins.jenkins_login():
+            user = User.objects.filter(userName__exact=user, passWord__exact=pwd)
+            if user:
                 req.session['login'] = 1
-                req.session['userName'] = user
-                req.session['passWord'] = pwd
+                for u in user:
+                    req.session['userID'] = u.id
+                    req.session['userDepartment'] = u.department
                 return index(req)
             else:
-                req.session['login'] = 0
-                return HttpResponse('<h>userName or passWord error</h>')
+                prompt = '用户名或密码错误!'
+                return render(req, 'login.html', {'form': form, 'prompt': prompt})
         else:
-            return HttpResponse('<h>login lose \'not form.is_valid()\'</h>')
+            prompt = '请正确填写信息!'
+            return render(req, 'login.html', {'form': form, 'prompt': prompt})
     else:
         form = LoginForm()
         return render(req, 'login.html', {'form': form})
@@ -35,9 +38,7 @@ def index(req):
         isLogin = False
 
     if isLogin:
-        user = req.session['userName']
-        pwd = req.session['passWord']
-        jenkins = JenkinsCustomServer(url='http://localhost:8080/', userName=user, password=pwd)
+        jenkins = JenkinsCustomServer()
         jobs = jenkins.jenkins_jobs()
 
         try:
@@ -47,7 +48,7 @@ def index(req):
             selectedJobName = selectedJob['name']
             req.session['jobName'] = selectedJobName
 
-        os = jenkins.jenkins_project_os(selectedJobName)
+        os = jenkins.jenkins_job_os(selectedJobName)
         req.session['os'] = os
         if os == 'ios':
             tagArray = ['builders', 'au.com.rayh.XCodeBuilder', 'configuration']
@@ -55,9 +56,17 @@ def index(req):
             tagArray = []
 
         config = jenkins.jenkins_job_config_xml(selectedJobName, tagArray)
-        building = jenkins.jenkins_job_status(selectedJobName)
+        buildable = jenkins.jenkins_job_buildable(selectedJobName)
         configForm = ProjectConfig()
-        return render(req, "index.html", {'jobs': jobs, 'config': config, 'configForm': configForm, 'selectJob': selectedJobName, 'building': building})
+
+        content = {'jobs': jobs,
+                   'config': config,
+                   'configForm': configForm,
+                   'selectJob': selectedJobName,
+                   'buildable': buildable,
+                   'commits': {},
+                   'commitAble': True}
+        return render(req, "index.html", content)
     else:
         return login(req)
 
@@ -73,10 +82,8 @@ def config(req):
             else:
                 tagArray = []
 
-            user = req.session['userName']
-            pwd = req.session['passWord']
             jobName = req.session['jobName']
-            jenkins = JenkinsCustomServer(url='http://localhost:8080/', userName=user, password=pwd)
+            jenkins = JenkinsCustomServer()
 
             newxml = jenkins.jenkins_new_job_config_xml(jobName, tagArray, queue)
             jenkins.jenkins_change_job_config(newxml, jobName)
@@ -89,10 +96,8 @@ def config(req):
 
 
 def build(req):
-    user = req.session['userName']
-    pwd = req.session['passWord']
     jobName = req.session['jobName']
-    jenkins = JenkinsCustomServer(url='http://localhost:8080/', userName=user, password=pwd)
+    jenkins = JenkinsCustomServer()
     jenkins.jenkins_build_project(jobName)
     return index(req)
 
@@ -104,3 +109,10 @@ def job(req):
             req.session['jobName'] = jobName
 
     return index(req)
+
+
+def commit(req):
+    if req.method == 'POST':
+        userId = req.session['userID']
+        userDepartment = req.session['userDepartment']
+        c = MyCommit(userId, userDepartment)

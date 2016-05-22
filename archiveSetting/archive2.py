@@ -2,17 +2,16 @@ import jenkins
 import re
 from xml.etree import ElementTree as ET
 
+
 class JenkinsCustomServer:
-    def __init__(self, url, userName, password):
-        self.rootURL = url
-        self.userName = userName
-        self.password = password
+    def str2bool(self, str):
+        return 'true' == str.lower()
 
     def jenkins_server(self):
-        server = jenkins.Jenkins(self.rootURL, username=self.userName, password=self.password)
-        # name = 'admin'
-        # token = 'ef6b51132237b4b14f5de8b025b1c844'
-        # server = jenkins.Jenkins('http://192.168.16.221:8080/jenkins', name, token)
+        # server = jenkins.Jenkins(self.rootURL, username=self.userName, password=self.password)
+        name = 'wwj'
+        token = 'ab3b3cd0567577077a28102cb612484c'
+        server = jenkins.Jenkins('http://127.0.0.1:8080/', name, token)
         return server
 
     def jenkins_login(self):
@@ -26,21 +25,41 @@ class JenkinsCustomServer:
 
     def jenkins_jobs(self):
         server = self.jenkins_server()
-        return server.get_jobs()
+        jobs = server.get_jobs()
 
-    def jenkins_project_os(self, jobName):
-        server = self.jenkins_server()
-        config_xml = server.get_job_config(jobName)
+        newJobs = []
+        for job in jobs:
+            jobName = job['name']
+            if not self.jenkins_job_test(jobName):
+                newJobs.append(job)
+        return newJobs
 
-        patLeft = re.compile(r'&lt;')
-        patRight = re.compile(r'&gt;')
-        config_xml = re.sub(patLeft, '<', config_xml)
-        config_xml = re.sub(patRight, '>', config_xml)
+    def jenkins_job_os(self, jobName):
+        info = self.jenkins_job_info(jobName)
+        descriptionXMLstr = '<base>' + info['description'] + '</base>'
+        xml_tree = ET.ElementTree(element=ET.fromstring(descriptionXMLstr))
 
-        xml_tree = ET.ElementTree(element=ET.fromstring(config_xml))
-        elem = xml_tree
-        for item in elem.iter(tag='os'):
-            return item.text
+        for elem in xml_tree.iter(tag='description_os'):
+            return elem.text
+        return None
+
+    def jenkins_job_test(self, jobName):
+        info = self.jenkins_job_info(jobName)
+        descriptionXMLstr = '<base>' + info['description'] + '</base>'
+        xml_tree = ET.ElementTree(element=ET.fromstring(descriptionXMLstr))
+
+        for elem in xml_tree.iter(tag='description_test'):
+            return self.str2bool(elem.text)
+        return True
+
+    def jenkins_job_project(self, jobName):
+        info = self.jenkins_job_info(jobName)
+        descriptionXMLstr = '<base>' + info['description'] + '</base>'
+        xml_tree = ET.ElementTree(element=ET.fromstring(descriptionXMLstr))
+
+        for elem in xml_tree.iter(tag='description_project'):
+            return elem.text
+        return None
 
     def jenkins_job_config_xml(self, jobName, tags):
         server = self.jenkins_server()
@@ -71,22 +90,27 @@ class JenkinsCustomServer:
         server.reconfig_job(jobName, configXml)
 
     def jenkins_build_project(self, jobName):
+        if self.jenkins_job_buildable(jobName):
+            server = self.jenkins_server()
+            server.build_job(jobName)
+
+    def jenkins_job_info(self, jobName):
         server = self.jenkins_server()
-        server.build_job(jobName)
+        return server.get_job_info(name=jobName)
 
-    def jenkins_job_status(self, jobName):
-        server = self.jenkins_server()
+    def jenkins_job_buildable(self, jobName):
+        info = self.jenkins_job_info(jobName)
 
-        for item in server.get_running_builds():
-            if item['name'] == jobName:
-                return True
-        return False
-
-
+        return info['buildable']
 
 
 # if __name__ == '__main__':
 #     j = JenkinsCustomServer(url='http://localhost:8080/', userName='wwj', password='123456')
+#
+#     b = j.jenkins_project_test('test02')
+#     print(b)
+    # jinf = j.jenkins_job_info('test02')
+    # print(jinf)
 #
 #     info = j.jenkins_job_status('test02')
 #     print(info)
@@ -108,4 +132,3 @@ class JenkinsCustomServer:
 #
 #     for item in xml_tree.iter(tag='os'):
 #         print(item.tag + ',' + item.text + '\n')
-

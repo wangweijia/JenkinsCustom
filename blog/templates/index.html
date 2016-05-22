@@ -29,20 +29,33 @@
         </div>
         <div>
             <h2>功能</h2>
-            {% if building %}
-                <form method="post" name="setConfig" action="/index" style="text-size:smaller">{% csrf_token %}
-                    <p>正在构建中,点击刷新按钮获取最新状态!</p>
-                    <button type="submit">刷新状态</button>
-                </form>
-            {% else %}
+            {% if buildable %}
                 <form method="post" name="setConfig" action="/build" style="text-size:smaller">{% csrf_token %}
                     <p>项目随时可以打包,点击打包按钮开始打包!</p>
                     <button type="submit">开始打包</button>
+                </form>
+            {% else %}
+                <form method="post" name="setConfig" action="/index" style="text-size:smaller">{% csrf_token %}
+                    <p>正在构建中,点击刷新按钮获取最新状态!</p>
+                    <button type="submit">刷新状态</button>
                 </form>
             {% endif %}
         </div>
         <div>
             <h2>说明</h2>
+            {% for commit in commits %}
+                <div>
+                    <p></p>
+                </div>
+            {% endfor %}
+            {% if commitAble %}
+                <div>
+                    <form method="post" name="setConfig" action="/commit" style="text-size:smaller">{% csrf_token %}
+                        <div><textarea name="textfield3" cols="30" rows="3"></textarea></div>
+                        <div><button type="submit">commit</button></div>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>
