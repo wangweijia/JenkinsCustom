@@ -18,6 +18,11 @@ from django.contrib import admin
 from blog import views as blog_views
 
 urlpatterns = [
+    # admin wwj123456
     url(r'^admin/', admin.site.urls),
+    url(r'^login', blog_views.login),
     url(r'^index', blog_views.index),
+    url(r'^config', blog_views.config),
+    url(r'^build', blog_views.build),
+    url(r'^job', blog_views.job),
 ]

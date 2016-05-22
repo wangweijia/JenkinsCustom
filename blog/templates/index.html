@@ -3,14 +3,47 @@
 <div id="page-body" class="clear">
     <div id="side-panel" style="background-color:white">
 {#    {{ jobs }}#}
+        <div>
+            <h2>所有项目</h2>
+        </div>
         {% for job in jobs %}
+{#            &nbsp;&nbsp;&nbsp;&nbsp;#}
             <div class="task">
-                <a href="http://localhost:8080/view/All/newJob" class="task-link"><h1>{{ job.name }}</h1></a>
+                <a href="http://localhost:8000/job?jobName={{ job.name }}" class="task-link"><h2>{{ job.name }}</h2></a>
             </div>
         {% endfor %}
     </div>
-    <div id="main-panel" style="background-color:yellow">
+    <div id="main-panel" style="background-color:white">
+        <div>
+            <h1>当前项目:{{ selectJob }}</h1>
+        </div>
+        <div>
+            <h2>打包配置</h2>
+            当前打包环境配置:{{ config.text }}
 
+            <form method="post" name="setConfig" action="/config" style="text-size:smaller">{% csrf_token %}
+                {{ configForm.as_p }}
+
+                <button type="submit">提交配置修改</button>
+            </form>
+        </div>
+        <div>
+            <h2>功能</h2>
+            {% if building %}
+                <form method="post" name="setConfig" action="/index" style="text-size:smaller">{% csrf_token %}
+                    <p>正在构建中,点击刷新按钮获取最新状态!</p>
+                    <button type="submit">刷新状态</button>
+                </form>
+            {% else %}
+                <form method="post" name="setConfig" action="/build" style="text-size:smaller">{% csrf_token %}
+                    <p>项目随时可以打包,点击打包按钮开始打包!</p>
+                    <button type="submit">开始打包</button>
+                </form>
+            {% endif %}
+        </div>
+        <div>
+            <h2>说明</h2>
+        </div>
     </div>
 </div>
 {% endblock %}

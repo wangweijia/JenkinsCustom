@@ -5,7 +5,7 @@
         <div id="main-panel">
             <a name="skip2content"></a>
             <div style="margin: 2em;">
-                <form method="post" name="login" action="/index/" style="text-size:smaller">{% csrf_token %}
+                <form method="post" name="login" action="/login" style="text-size:smaller">{% csrf_token %}
                     {{ form.as_p }}
                     <input name="from" type="hidden" value="login">
                         <span class="yui-button yui-submit-button submit-button primary" id="yui-gen1" name="Submit">
