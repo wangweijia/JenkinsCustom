@@ -18,7 +18,7 @@ def login(req):
                 req.session['login'] = 1
                 for u in user:
                     req.session['userID'] = u.id
-                    req.session['userDepartment'] = u.department
+                    req.session['userDepartment'] = u.department.departmentName
                 return index(req)
             else:
                 prompt = '用户名或密码错误!'
@@ -41,6 +41,11 @@ def index(req):
         jenkins = JenkinsCustomServer()
         jobs = jenkins.jenkins_jobs()
 
+        userId = req.session['userID']
+        userDepartment = req.session['userDepartment']
+        name = User.objects.get(id=userId)
+
+        commitAble = userDepartment == '开发部门'
         try:
             selectedJobName = req.session['jobName']
         except:
@@ -59,13 +64,26 @@ def index(req):
         buildable = jenkins.jenkins_job_buildable(selectedJobName)
         configForm = ProjectConfig()
 
+        if commitAble:
+            commit = MyCommit(userId, userDepartment, selectedJobName).commit_by_user().get(selectedJobName)
+            commits = {name: commit}
+        else:
+            commit = MyCommit(userId, userDepartment, selectedJobName).all_commit()
+            commits = {}
+            for uid, com in commit.items():
+                jobCommit = com.get(selectedJobName)
+                if jobCommit:
+                    uname = User.objects.get(id=int(uid))
+                    commits[uname] = jobCommit
+
         content = {'jobs': jobs,
                    'config': config,
                    'configForm': configForm,
                    'selectJob': selectedJobName,
                    'buildable': buildable,
-                   'commits': {},
-                   'commitAble': True}
+                   'commits': commits,
+                   'commitAble': commitAble}
+
         return render(req, "index.html", content)
     else:
         return login(req)
@@ -113,6 +131,11 @@ def job(req):
 
 def commit(req):
     if req.method == 'POST':
+        commitTxt = req.POST.get('commitTxt')
         userId = req.session['userID']
+        jobName = req.session['jobName']
         userDepartment = req.session['userDepartment']
-        c = MyCommit(userId, userDepartment)
+        cm = MyCommit(userId, userDepartment, jobName)
+        cm.add_commit(commitTxt)
+
+        return index(req)

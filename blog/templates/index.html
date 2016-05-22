@@ -42,17 +42,31 @@
             {% endif %}
         </div>
         <div>
-            <h2>说明</h2>
-            {% for commit in commits %}
-                <div>
-                    <p></p>
-                </div>
+            <h2>需要同步的信息:</h2>
+{#            {% if commits.items.count > 0 %}#}
+{#                <h3>需要同步的信息:</h3>#}
+{#            {% endif %}#}
+            {% for name,commit in commits.items %}
+                <h3>{{ name }}:</h3>
+{#                {{ commit }}#}
+                {% for k,v in commit.items %}
+                    <i>
+                    <div>
+                        <b>{{ forloop.counter }}.  </b>{{ v }}
+                    </div>
+                </i>
+                {% endfor %}
             {% endfor %}
+
             {% if commitAble %}
                 <div>
                     <form method="post" name="setConfig" action="/commit" style="text-size:smaller">{% csrf_token %}
-                        <div><textarea name="textfield3" cols="30" rows="3"></textarea></div>
-                        <div><button type="submit">commit</button></div>
+                        <div>
+                            <textarea name="commitTxt" cols="30" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <button type="submit">commit</button>
+                        </div>
                     </form>
                 </div>
             {% endif %}
