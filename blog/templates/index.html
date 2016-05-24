@@ -9,7 +9,7 @@
         {% for job in jobs %}
 {#            &nbsp;&nbsp;&nbsp;&nbsp;#}
             <div class="task">
-                <a href="http://localhost:8000/job?jobName={{ job.name }}" class="task-link"><h2>{{ job.name }}</h2></a>
+                <a href="/index/job?jobName={{ job.name }}" class="task-link"><h2>{{ job.name }}</h2></a>
             </div>
         {% endfor %}
     </div>
@@ -43,16 +43,12 @@
         </div>
         <div>
             <h2>需要同步的信息:</h2>
-{#            {% if commits.items.count > 0 %}#}
-{#                <h3>需要同步的信息:</h3>#}
-{#            {% endif %}#}
             {% for name,commit in commits.items %}
                 <h3>{{ name }}:</h3>
-{#                {{ commit }}#}
                 {% for k,v in commit.items %}
                     <i>
                     <div>
-                        <b>{{ forloop.counter }}.  </b>{{ v }}
+                        <b>{{ forloop.counter }}.  </b>{{ v }}<div><a href="/index/deleCommit?k={{ k }}"><button type="submit">删除</button></a></div>
                     </div>
                 </i>
                 {% endfor %}
@@ -60,7 +56,7 @@
 
             {% if commitAble %}
                 <div>
-                    <form method="post" name="setConfig" action="/commit" style="text-size:smaller">{% csrf_token %}
+                    <form method="post" name="setConfig" action="/index/commit" style="text-size:smaller">{% csrf_token %}
                         <div>
                             <textarea name="commitTxt" cols="30" rows="3"></textarea>
                         </div>

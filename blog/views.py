@@ -1,5 +1,6 @@
+import json
 from django.shortcuts import render_to_response, render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from .forms import *
 from .models import *
 from archiveSetting.archive2 import JenkinsCustomServer
@@ -19,7 +20,7 @@ def login(req):
                 for u in user:
                     req.session['userID'] = u.id
                     req.session['userDepartment'] = u.department.departmentName
-                return index(req)
+                return HttpResponseRedirect('/index')
             else:
                 prompt = '用户名或密码错误!'
                 return render(req, 'login.html', {'form': form, 'prompt': prompt})
@@ -73,7 +74,7 @@ def index(req):
             for uid, com in commit.items():
                 jobCommit = com.get(selectedJobName)
                 if jobCommit:
-                    uname = User.objects.get(id=int(uid))
+                    uname = User.objects.get(id=int(uid)).name
                     commits[uname] = jobCommit
 
         content = {'jobs': jobs,
@@ -86,7 +87,7 @@ def index(req):
 
         return render(req, "index.html", content)
     else:
-        return login(req)
+        return HttpResponseRedirect('/login')
 
 
 def config(req):
@@ -97,7 +98,7 @@ def config(req):
 
             if req.session['os'] == 'ios':
                 tagArray = ['builders', 'au.com.rayh.XCodeBuilder', 'configuration']
-            else:
+            elif req.session['os'] == 'android':
                 tagArray = []
 
             jobName = req.session['jobName']
@@ -106,18 +107,18 @@ def config(req):
             newxml = jenkins.jenkins_new_job_config_xml(jobName, tagArray, queue)
             jenkins.jenkins_change_job_config(newxml, jobName)
 
-            return index(req)
+            return HttpResponseRedirect('/index')
         else:
             HttpResponse('<h>login lose \'not form.is_valid()\'</h>')
     else:
-        index(req)
+        return HttpResponseRedirect('/index')
 
 
 def build(req):
     jobName = req.session['jobName']
     jenkins = JenkinsCustomServer()
     jenkins.jenkins_build_project(jobName)
-    return index(req)
+    return HttpResponseRedirect('/index')
 
 
 def job(req):
@@ -126,7 +127,7 @@ def job(req):
         if jobName:
             req.session['jobName'] = jobName
 
-    return index(req)
+    return HttpResponseRedirect('/index')
 
 
 def commit(req):
@@ -138,4 +139,38 @@ def commit(req):
         cm = MyCommit(userId, userDepartment, jobName)
         cm.add_commit(commitTxt)
 
-        return index(req)
+        return HttpResponseRedirect('/index')
+
+
+def dele_commit(req):
+    if req.method == 'GET':
+        deleK = req.GET.get('k')
+        userId = req.session['userID']
+        jobName = req.session['jobName']
+        userDepartment = req.session['userDepartment']
+        cm = MyCommit(userId, userDepartment, jobName)
+        cm.dele_commit(deleK)
+
+        return HttpResponseRedirect('/index')
+
+
+def job_commit_json(req):
+    if req.method == 'GET':
+        jobName = req.GET.get('jobName')
+        try:
+            deleJob = int(req.GET.get('deleJob'))
+        except:
+            deleJob = False
+
+        cm = MyCommit(None, None, jobName)
+        commit = cm.all_commit()
+        commits = {}
+        for uid, com in commit.items():
+            jobCommit = com.get(jobName)
+            if jobCommit:
+                uname = User.objects.get(id=int(uid)).name
+                commits[uname] = jobCommit
+
+        if bool(deleJob):
+            cm.dele_job_commit()
+        return HttpResponse(json.dumps(commits), content_type="application/json")

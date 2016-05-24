@@ -16,8 +16,8 @@ class MyCommit:
     def all_commit(self):
         path = os.path.abspath(os.curdir) + '/archiveSetting/CommitData/'
         dic = {}
-        for a, b, c in os.walk(path):
-            for fileName in c:
+        for dirpath, dirnames, filenames in os.walk(path):
+            for fileName in filenames:
                 filePath = path + fileName
                 fh = open(file=filePath, mode='r')
                 commitDic = JSONDecoder().decode(fh.readlines()[0])
@@ -48,8 +48,26 @@ class MyCommit:
 
     def dele_commit(self, commitKey):
         commitDic = self.commit_by_user()
-        commitDic.pop(commitKey, 'nil')
+        jobCommitDic = commitDic.get(self.jobName, None)
+        print('jobCommitDic')
+        print(jobCommitDic)
+        if jobCommitDic:
+            jobCommitDic.pop(commitKey, None)
         return self.save_commit(commitDic)
+
+    def dele_job_commit(self):
+        path = os.path.abspath(os.curdir) + '/archiveSetting/CommitData/'
+        for dirpath, dirnames, filenames in os.walk(path):
+            for fileName in filenames:
+                filePath = path + fileName
+                fh = open(file=filePath, mode='r')
+                commitDic = JSONDecoder().decode(fh.readlines()[0])
+                fh.close()
+                commitDic.pop(self.jobName, None)
+                fh = open(file=filePath, mode='w')
+                commitJson = JSONEncoder().encode(commitDic)
+                fh.write(commitJson)
+                fh.close()
 
     def save_commit(self, commitDic):
         try:
