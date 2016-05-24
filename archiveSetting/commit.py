@@ -49,8 +49,6 @@ class MyCommit:
     def dele_commit(self, commitKey):
         commitDic = self.commit_by_user()
         jobCommitDic = commitDic.get(self.jobName, None)
-        print('jobCommitDic')
-        print(jobCommitDic)
         if jobCommitDic:
             jobCommitDic.pop(commitKey, None)
         return self.save_commit(commitDic)
