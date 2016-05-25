@@ -42,6 +42,7 @@ class User(models.Model):
 # 配置字段表
 class Config(models.Model):
     configName = models.CharField(max_length=50)
+    projects = models.ManyToManyField(Project)
 
     def __unicode__(self):
         return self.configName

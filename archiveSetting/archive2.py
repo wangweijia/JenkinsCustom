@@ -8,9 +8,9 @@ class JenkinsCustomServer:
 
     def jenkins_server(self):
         # server = jenkins.Jenkins(self.rootURL, username=self.userName, password=self.password)
-        name = 'wwj'
-        token = 'ab3b3cd0567577077a28102cb612484c'
-        server = jenkins.Jenkins('http://127.0.0.1:8080/', name, token)
+        name = 'admin'
+        token = 'ef6b51132237b4b14f5de8b025b1c844'
+        server = jenkins.Jenkins('http://192.168.16.221:8080/jenkins', name, token)
         return server
 
     def jenkins_login(self):
@@ -39,6 +39,15 @@ class JenkinsCustomServer:
         xml_tree = ET.ElementTree(element=ET.fromstring(descriptionXMLstr))
 
         for elem in xml_tree.iter(tag='description_os'):
+            return elem.text
+        return None
+
+    def jenkins_job_project(self, jobName):
+        info = self.jenkins_job_info(jobName)
+        descriptionXMLstr = '<base>' + info['description'] + '</base>'
+        xml_tree = ET.ElementTree(element=ET.fromstring(descriptionXMLstr))
+
+        for elem in xml_tree.iter(tag='description_project'):
             return elem.text
         return None
 
@@ -103,31 +112,8 @@ class JenkinsCustomServer:
         return info['buildable']
 
 
-# if __name__ == '__main__':
-#     j = JenkinsCustomServer(url='http://localhost:8080/', userName='wwj', password='123456')
-#
-#     b = j.jenkins_project_test('test02')
-#     print(b)
-    # jinf = j.jenkins_job_info('test02')
-    # print(jinf)
-#
-#     info = j.jenkins_job_status('test02')
-#     print(info)
-#     s = j.jenkins_job_config_xml('wwj01', ['builders', 'au.com.rayh.XCodeBuilder', 'configuration'])
-#
-#     print(s)
-#     j = JenkinsCustomServer(url='http://localhost:8080/', userName='wwj', password='123456')
-#     server = j.jenkins_server()
-#
-#     xml = server.get_job_config('test02')
-#     patLeft = re.compile(r'&lt;')
-#     patRight = re.compile(r'&gt;')
-#     xml = re.sub(patLeft, '<', xml)
-#     xml = re.sub(patRight, '>', xml)
-#
-#     xml_tree = ET.ElementTree(element=ET.fromstring(xml))
-#
-#     print(xml)
-#
-#     for item in xml_tree.iter(tag='os'):
-#         print(item.tag + ',' + item.text + '\n')
+if __name__ == '__main__':
+    j = JenkinsCustomServer()
+    server = j.jenkins_server()
+    config_xml = server.get_job_config('android_user_client')
+    print(config_xml)

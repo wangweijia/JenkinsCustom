@@ -55,15 +55,16 @@ def index(req):
             req.session['jobName'] = selectedJobName
 
         os = jenkins.jenkins_job_os(selectedJobName)
+        project = jenkins.jenkins_job_project(selectedJobName)
         req.session['os'] = os
         if os == 'ios':
             tagArray = ['builders', 'au.com.rayh.XCodeBuilder', 'configuration']
         else:
-            tagArray = []
+            tagArray = ['switches']
 
         config = jenkins.jenkins_job_config_xml(selectedJobName, tagArray)
         buildable = jenkins.jenkins_job_buildable(selectedJobName)
-        configForm = ProjectConfig()
+        configForm = ProjectConfig((os+'_'+project))
 
         if commitAble:
             commit = MyCommit(userId, userDepartment, selectedJobName).commit_by_user().get(selectedJobName)
@@ -92,24 +93,20 @@ def index(req):
 
 def config(req):
     if req.method == 'POST':
-        form = ProjectConfig(req.POST)
-        if form.is_valid():
-            queue = req.POST.get('queue')
+        queue = req.POST.get('queue')
 
-            if req.session['os'] == 'ios':
-                tagArray = ['builders', 'au.com.rayh.XCodeBuilder', 'configuration']
-            elif req.session['os'] == 'android':
-                tagArray = []
+        if req.session['os'] == 'ios':
+            tagArray = ['builders', 'au.com.rayh.XCodeBuilder', 'configuration']
+        elif req.session['os'] == 'android':
+            tagArray = ['switches']
 
-            jobName = req.session['jobName']
-            jenkins = JenkinsCustomServer()
+        jobName = req.session['jobName']
+        jenkins = JenkinsCustomServer()
 
-            newxml = jenkins.jenkins_new_job_config_xml(jobName, tagArray, queue)
-            jenkins.jenkins_change_job_config(newxml, jobName)
+        newxml = jenkins.jenkins_new_job_config_xml(jobName, tagArray, queue)
+        jenkins.jenkins_change_job_config(newxml, jobName)
 
-            return HttpResponseRedirect('/index')
-        else:
-            HttpResponse('<h>login lose \'not form.is_valid()\'</h>')
+        return HttpResponseRedirect('/index')
     else:
         return HttpResponseRedirect('/index')
 

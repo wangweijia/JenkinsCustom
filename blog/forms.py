@@ -7,9 +7,14 @@ class LoginForm(forms.Form):
     passWord = forms.CharField(max_length=10, widget=forms.PasswordInput)
 
 
+# class ProjectConfig(forms.Form):
+#     queue = forms.ModelChoiceField(label="新打包环境:", queryset=Config.objects.all(), to_field_name='configName')
+
+
 class ProjectConfig(forms.Form):
-    queue = forms.ModelChoiceField(label="新打包环境:", queryset=Config.objects.all(), to_field_name='configName')
+    def __init__(self, projects):
+        super(ProjectConfig, self).__init__()
+        p = Project.objects.get(projectName=projects).id
+        queue = forms.ModelChoiceField(label="新打包环境:", queryset=Config.objects.filter(projects=p), to_field_name='configName')
 
-
-# class Commit(forms.Form):
-#     content = forms.ModelChoiceField()
+        self.fields['queue'] = queue
