@@ -63,7 +63,7 @@ def index(req):
             tagArray = ['switches']
 
         config = jenkins.jenkins_job_config_xml(selectedJobName, tagArray)
-        buildable = jenkins.jenkins_job_buildable(selectedJobName)
+        buildable = jenkins.jenkins_job_building(selectedJobName)
         configForm = ProjectConfig((os+'_'+project))
 
         if commitAble:
